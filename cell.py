@@ -7,8 +7,9 @@ import sys
 
 class Cell:
     all_cells = []
-    cell_count = settings.CELL_COUNT
+    cell_count = settings.CELL_COUNT - settings.MINE_NUMBER
     cell_count_label_object = None
+    mine_count = settings.MINE_NUMBER
 
     def __init__(self, x, y, is_mine=False):
         self.is_mine = is_mine
@@ -26,8 +27,8 @@ class Cell:
     def create_button_obj(self, location):
         btn = Button(
             location,  # place button in a Frame()
-            width=8,
-            height=3,
+            width=2,
+            height=1,
         )
         btn.bind('<Button-1>', self.left_click_action)  # left-click. NOT calling method, REFERENCING method
         btn.bind('<Button-3>', self.right_click_action)  # right-click
@@ -39,8 +40,9 @@ class Cell:
             location,
             bg='black',
             fg='white',
-            text=f"Cells Left: {Cell.cell_count}",
-            font=('', 14),
+            text=f"Cells Left: {Cell.cell_count}\n"
+                 f"Flags Left: {settings.MINE_NUMBER}",
+            font=('', 10),
         )
         Cell.cell_count_label_object = label
 
@@ -57,7 +59,7 @@ class Cell:
             self.show_cell()
 
             # If mines count is equal to the cells left count, player wins
-            if Cell.cell_count == settings.MINE_COUNT:
+            if Cell.cell_count == settings.MINE_NUMBER:
                 ctypes.windll.user32.MessageBoxW(0, 'YOU WIN', 'WIN', 0)
 
         # Cancel click events if cell is already opened
@@ -71,11 +73,26 @@ class Cell:
                 bg='yellow'
             )
             self.is_mine_candidate = True
+            Cell.mine_count -= 1
+
+            if Cell.cell_count_label_object:
+                Cell.cell_count_label_object.configure(
+                    text=f"Cells Left: {Cell.cell_count}\n"
+                         f"Flags Left: {Cell.mine_count}",
+                )
         else:
             self.cell_button_obj.configure(
                 bg='SystemButtonFace',
             )
             self.is_mine_candidate = False
+            Cell.mine_count += 1
+
+            #TODO make new function for updating cell and mine count
+            if Cell.cell_count_label_object:
+                Cell.cell_count_label_object.configure(
+                    text=f"Cells Left: {Cell.cell_count}\n"
+                         f"Flags Left: {Cell.mine_count}",
+                )
 
     def get_cell(self, x, y):
         # Return cell object based on x, y coordinate
@@ -116,7 +133,8 @@ class Cell:
             )
             if Cell.cell_count_label_object:
                 Cell.cell_count_label_object.configure(
-                    text=f"Cells Left: {Cell.cell_count}",
+                    text=f"Cells Left: {Cell.cell_count}\n"
+                         f"Flags Left: {Cell.mine_count}",
                 )
             # If mine candidate, we should still be able to click it and the
             # button configures back to SystemButtonFace
@@ -131,6 +149,6 @@ class Cell:
 
     @staticmethod
     def randomize_mines():
-        selected_cells = random.sample(Cell.all_cells, settings.MINE_COUNT)
+        selected_cells = random.sample(Cell.all_cells, settings.MINE_NUMBER)
         for picked_cell in selected_cells:
             picked_cell.is_mine = True
