@@ -145,7 +145,7 @@ class Cell:
         # display "you lost" message
         self.cell_button_obj.configure(bg="red")
         ctypes.windll.user32.MessageBoxW(0, 'MINE, BOOM', 'GAME OVER', 0)
-        sys.exit()  # exits game, TODO restart the game when you lose
+        # sys.exit()  # exits game, TODO restart the game when you lose
 
     @staticmethod
     def randomize_mines():
