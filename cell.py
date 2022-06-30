@@ -10,6 +10,17 @@ class Cell:
     cell_count = settings.CELL_COUNT - settings.MINE_NUMBER
     cell_count_label_object = None
     mine_count = settings.MINE_NUMBER
+    text_color = {
+        0: "white",
+        1: "blue",
+        2: "green",
+        3: "red",
+        4: "purple",
+        5: "maroon",
+        6: "turquoise",
+        7: "black",
+        8: "gray",
+    }
 
     def __init__(self, x, y, is_mine=False):
         self.is_mine = is_mine
@@ -47,27 +58,26 @@ class Cell:
         Cell.cell_count_label_object = label
 
     def left_click_action(self, event):
+        """When button is left-clicked, """
         # tkinter convention to have one more parameter to assign something to an event
         if self.is_mine:
             self.show_mine()
         else:
-            if self.surrounding_cells_mine_number == 0:
-                # shows surrounding cell if clicked cell has no surrounding mines
-                for cell_obj in self.surrounding_cells:
-                    cell_obj.show_cell()
-                    cell_obj.is_opened = True
+            self.show_surrounding_cells()
             self.show_cell()
 
             # If mines count is equal to the cells left count, player wins
             if Cell.cell_count == settings.MINE_NUMBER:
                 ctypes.windll.user32.MessageBoxW(0, 'YOU WIN', 'WIN', 0)
 
-        # Cancel click events if cell is already opened
-        # TODO still able to right click if opened by surrounding cell = 0
-        self.cell_button_obj.unbind('<Button-1>')
-        self.cell_button_obj.unbind('<Button-3>')
+
 
     def right_click_action(self, event):
+        """ When button is right-clicked, the button is flagged as a possible
+            mine. The background of the button switches to yellow and flag
+            count is decreased by 1. When button is already flagged, it reverts
+            to the default color and flag count is increased by 1."""
+
         if not self.is_mine_candidate:
             self.cell_button_obj.configure(
                 bg='yellow'
@@ -95,7 +105,7 @@ class Cell:
                 )
 
     def get_cell(self, x, y):
-        # Return cell object based on x, y coordinate
+        # Return cell object based on x, y grid coordinates
         for cell in Cell.all_cells:
             if cell.x == x and cell.y == y:
                 return cell
@@ -125,11 +135,12 @@ class Cell:
         return counter
 
     def show_cell(self):
-        """display number of mines surrounding cell"""
+        """ Displays number of mines surrounding cell when cell is opened. """
         if not self.is_opened:
             Cell.cell_count -= 1
             self.cell_button_obj.configure(
-                text=f"{self.surrounding_cells_mine_number}"
+                text=f"{self.surrounding_cells_mine_number}",
+                fg=f"{Cell.text_color[self.surrounding_cells_mine_number]}",
             )
             if Cell.cell_count_label_object:
                 Cell.cell_count_label_object.configure(
@@ -140,15 +151,31 @@ class Cell:
             # button configures back to SystemButtonFace
             self.cell_button_obj.configure(bg='SystemButtonFace')
         self.is_opened = True
+        # Cancel click events if button is opened
+        self.cell_button_obj.unbind('<Button-1>')
+        self.cell_button_obj.unbind('<Button-3>')
+
+    def show_surrounding_cells(self):
+        """ Opens surrounding cells if cell with zero surrounding mines is
+            opened """
+        if self.surrounding_cells_mine_number == 0:
+            for cell_obj in self.surrounding_cells:
+                if not cell_obj.is_opened:
+                    cell_obj.show_cell()
+                    cell_obj.is_opened = True
+                    cell_obj.show_surrounding_cells()
 
     def show_mine(self):
-        # display "you lost" message
+        """ When a mine button is shown, the background turns red."""
         self.cell_button_obj.configure(bg="red")
         ctypes.windll.user32.MessageBoxW(0, 'MINE, BOOM', 'GAME OVER', 0)
         # sys.exit()  # exits game, TODO restart the game when you lose
 
     @staticmethod
     def randomize_mines():
+        """ Randomly selects cells to become mines and number of mines depends
+            on grid size and mine number """
+
         selected_cells = random.sample(Cell.all_cells, settings.MINE_NUMBER)
         for picked_cell in selected_cells:
             picked_cell.is_mine = True
