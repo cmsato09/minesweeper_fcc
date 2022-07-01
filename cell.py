@@ -10,7 +10,7 @@ class Cell:
     cell_count = settings.CELL_COUNT - settings.MINE_NUMBER # could use len(all_cells)?
     cell_count_label_object = None
     mine_count = settings.MINE_NUMBER
-    text_color = { # used in show_cell function when displaying text color
+    text_color = {  # used in show_cell function when displaying text color
         0: "white",
         1: "blue",
         2: "green",
@@ -29,7 +29,7 @@ class Cell:
         self.cell_button_obj = None
         self.x = x
         self.y = y
-
+        # when a cell is created, automatically puts itself in all_cells list
         Cell.all_cells.append(self)
 
     def __repr__(self):
@@ -46,7 +46,7 @@ class Cell:
             width=2,
             height=1,
         )
-        btn.bind('<Button-1>', self.left_click_action)  # left-click. NOT calling method, REFERENCING method
+        btn.bind('<ButtonRelease-1>', self.left_click_action)  # left-click. NOT calling method, REFERENCING method
         btn.bind('<Button-3>', self.right_click_action)  # right-click
         self.cell_button_obj = btn
 
@@ -73,11 +73,11 @@ class Cell:
         if self.is_mine:
             self.show_mine()
         else:
-            self.show_surrounding_cells()
             self.show_cell()
+            self.show_surrounding_cells()
 
             # If mines count is equal to the cells left count, player wins
-            if Cell.cell_count == settings.MINE_NUMBER:
+            if Cell.cell_count == 0:
                 ctypes.windll.user32.MessageBoxW(0, 'YOU WIN', 'WIN', 0)
 
     def right_click_action(self, event):
@@ -94,27 +94,15 @@ class Cell:
             )
             self.is_mine_candidate = True
             Cell.mine_count -= 1
-
             self.update_count()
-            # if Cell.cell_count_label_object:
-            #     Cell.cell_count_label_object.configure(
-            #         text=f"Cells Left: {Cell.cell_count}\n"
-            #              f"Flags Left: {Cell.mine_count}",
-            #     )
+
         else:
             self.cell_button_obj.configure(
                 bg='SystemButtonFace',
             )
             self.is_mine_candidate = False
             Cell.mine_count += 1
-
             self.update_count()
-            #make new function for updating cell and mine count
-            # if Cell.cell_count_label_object:
-            #     Cell.cell_count_label_object.configure(
-            #         text=f"Cells Left: {Cell.cell_count}\n"
-            #              f"Flags Left: {Cell.mine_count}",
-            #     )
 
     def get_cell(self, x, y):
         """
@@ -169,20 +157,13 @@ class Cell:
             self.cell_button_obj.configure(
                 text=f"{self.surrounding_cells_mine_number}",
                 fg=f"{Cell.text_color[self.surrounding_cells_mine_number]}",
-            )
+                relief="flat",
 
+            )
             self.update_count()
-            # if Cell.cell_count_label_object:
-            #     Cell.cell_count_label_object.configure(
-            #         text=f"Cells Left: {Cell.cell_count}\n"
-            #              f"Flags Left: {Cell.mine_count}",
-            #     )
-            # If mine candidate, we should still be able to click it and the
-            # button configures back to SystemButtonFace
-            self.cell_button_obj.configure(bg='SystemButtonFace')
-        self.is_opened = True
+            self.is_opened = True
         # Cancel click events if button is opened
-        self.cell_button_obj.unbind('<Button-1>')
+        self.cell_button_obj.unbind('<ButtonRelease-1>')
         self.cell_button_obj.unbind('<Button-3>')
 
     def show_surrounding_cells(self):
@@ -197,13 +178,18 @@ class Cell:
                     cell_obj.is_opened = True
                     cell_obj.show_surrounding_cells()
 
-    def show_mine(self):
+    @staticmethod
+    def show_mine():
         """
         When a mine button is shown, the background of the cell turns red.
-        Hit a mine, game over.
+        Hit a mine, game over. Show all mine locations
         """
-        self.cell_button_obj.configure(bg="red")
-        ctypes.windll.user32.MessageBoxW(0, 'MINE, BOOM', 'GAME OVER', 0)
+        for cell in Cell.all_cells:
+            cell.cell_button_obj.unbind('<ButtonRelease-1>')
+            cell.cell_button_obj.unbind('<Button-3>')
+            if cell.is_mine:
+                cell.cell_button_obj.configure(bg="red")
+        # ctypes.windll.user32.MessageBoxW(0, 'MINE, BOOM', 'GAME OVER', 0)
         # sys.exit()  # exits game, TODO restart the game when you lose
 
     @staticmethod
@@ -221,7 +207,6 @@ class Cell:
         """
         Updates cell and flag count labels in top_frame
         """
-        #if Cell.cell_count_label_object:
         Cell.cell_count_label_object.configure(
             text=f"Cells Left: {Cell.cell_count}\n"
                  f"Flags Left: {Cell.mine_count}",

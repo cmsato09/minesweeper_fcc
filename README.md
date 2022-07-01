@@ -24,4 +24,8 @@ The basics of tkinter is touched upon, but not expanded.
 Run the main.py file to play the game. It will open a Tkinter interface.  
 
 ### Changelog
+v1.1 -- fixed surrounding cell bug where only surrounding cells were opened 
+when a cell had zero mines around. Recursively opens surrounding cells so if 
+there are other zero mine cells next to zero mine cells, it opens.
+
 v1.0 -- Coded base game covered in tutorial
