@@ -66,8 +66,9 @@ def reset_game():
         cell.cell_button_obj.configure(
             text="",
             bg="SystemButtonFace",
+            relief="raised"
         )
-        cell.cell_button_obj.bind('<Button-1>', cell.left_click_action)
+        cell.cell_button_obj.bind('<ButtonRelease-1>', cell.left_click_action)
         cell.cell_button_obj.bind('<Button-3>', cell.right_click_action)
     Cell.cell_count = settings.CELL_COUNT - settings.MINE_NUMBER
     Cell.mine_count = settings.MINE_NUMBER
