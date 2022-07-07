@@ -31,6 +31,9 @@ Run the main.py file to play the game. It will open a Tkinter window. Start
 clicking on cells!
 
 ### Changelog
+v1.3 -- Added difficulty levels menu. Select from 'Beginner', 'Intermediate', 
+and 'Advanced' to change number of cells and mines.
+
 v1.2 -- Added reset button. Reset the game any time or after winning or losing.
 Cells become flat after being pressed to differentiate between opened and 
 unopened.

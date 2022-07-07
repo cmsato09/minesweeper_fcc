@@ -26,6 +26,7 @@ difficulty = {
         'GRID_SIZE_X': 9,
         'GRID_SIZE_Y': 9,
         'MINES': 10,
+        'CELLS_LEFT': 71
     },
     'Intermediate': {
         'WIDTH': 384,
@@ -33,6 +34,7 @@ difficulty = {
         'GRID_SIZE_X': 16,
         'GRID_SIZE_Y': 16,
         'MINES': 40,
+        'CELLS_LEFT': 216,
     },
     'Advanced': {
         'WIDTH': 720,
@@ -40,6 +42,7 @@ difficulty = {
         'GRID_SIZE_X': 30,
         'GRID_SIZE_Y': 16,
         'MINES': 99,
+        'CELLS_LEFT': 381,
     },
 }
 
@@ -93,13 +96,13 @@ def create_window(w, h):
         text="reset",
         command=reset_game,
     )
-    reset_button.place(x=settings.width_percent(75), y=10)
+    reset_button.place(x=100, y=10)
 
 
 def create_field(difficulty_level):
     """
-    Creates all cells and cell buttons based on grid size. Places all buttons
-    in center play frame.
+    Creates all cells and cell buttons based on grid size given by difficulty
+    level. Places all buttons in center_frame.
     Creates cell count and flag count label in top left of the frame.
     Randomize which cells are mines from created cells.
     """
@@ -114,7 +117,7 @@ def create_field(difficulty_level):
     Cell.create_cell_count_label(top_frame)
     Cell.cell_count_label_object.place(x=0, y=0)
 
-    Cell.randomize_mines(difficulty[DIFFICULTY_STATE]['MINES'])
+    Cell.randomize_mines(difficulty[difficulty_level]['MINES'])
 
 
 def set_difficulty(difficulty_level):
@@ -126,16 +129,21 @@ def set_difficulty(difficulty_level):
     DIFFICULTY_STATE = difficulty_level
 
     root_window.geometry(
-        f"{difficulty[difficulty_level]['WIDTH']}x{difficulty[difficulty_level]['HEIGHT']}"
+        f"{difficulty[difficulty_level]['WIDTH']}x"
+        f"{difficulty[difficulty_level]['HEIGHT']}"
     )
     top_frame.configure(
         width=difficulty[difficulty_level]['WIDTH'],
         height=difficulty[difficulty_level]['HEIGHT'],
     )
-    Cell.cell_count = difficulty[difficulty_level]['GRID_SIZE_X'] * difficulty[difficulty_level]['GRID_SIZE_Y']
+
+    # Updates labels given difficulty level
+    Cell.cell_count = difficulty[difficulty_level]['CELLS_LEFT']
     Cell.mine_count = difficulty[difficulty_level]['MINES']
     Cell.update_count()
 
+    # Destroys all buttons in center_frame and Cells within all_cells list
+    # creates new cells and fields depending on difficulty
     for child in center_frame.winfo_children():
         child.destroy()
     Cell.all_cells = []
@@ -153,7 +161,7 @@ def reset_game():
     Considering it uses everything from the Cell class, is it better to put
     this function in cell.py?
     """
-    global DIFFICULTY_STATE
+
     for cell in Cell.all_cells:
         cell.is_opened = False
         cell.is_mine = False
@@ -165,8 +173,7 @@ def reset_game():
         )
         cell.cell_button_obj.bind('<ButtonRelease-1>', cell.left_click_action)
         cell.cell_button_obj.bind('<Button-3>', cell.right_click_action)
-    Cell.cell_count = difficulty[DIFFICULTY_STATE]['GRID_SIZE_X'] * \
-                      difficulty[DIFFICULTY_STATE]['GRID_SIZE_Y']
+    Cell.cell_count = difficulty[DIFFICULTY_STATE]['CELLS_LEFT']
     Cell.mine_count = difficulty[DIFFICULTY_STATE]['MINES']
     Cell.cell_count_label_object.configure(
         text=f"Cells Left: {Cell.cell_count}\n"

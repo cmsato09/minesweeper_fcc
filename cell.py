@@ -1,15 +1,15 @@
 from tkinter import Button, Label
 import random
-import settings
 import ctypes
 import sys
 
 
 class Cell:
     all_cells = []
-    cell_count = settings.GRID_SIZE_X * settings.GRID_SIZE_Y
+    # Default number of cells that aren't mines in Beginner difficulty
+    cell_count = 71
     cell_count_label_object = None
-    mine_count = settings.MINE_NUMBER
+    mine_count = 10  # Default number of mines in Beginner difficulty
     text_color = {  # used in show_cell function when displaying text color
         0: "white",
         1: "blue",
@@ -33,7 +33,7 @@ class Cell:
         Cell.all_cells.append(self)
 
     def __repr__(self):
-        return f"Cell({self.x}, {self.y})"
+        return f"Cell({self.x}, {self.y}, mine: {self.is_mine})"
 
     def create_button_obj(self, location):
         """
@@ -42,11 +42,12 @@ class Cell:
         Button set to self.cell_button_obj
         """
         btn = Button(
-            location,  # place button in a Frame()
+            location,
             width=2,
             height=1,
         )
-        btn.bind('<ButtonRelease-1>', self.left_click_action)  # left-click. NOT calling method, REFERENCING method
+        # left-click. NOT calling method, REFERENCING method
+        btn.bind('<ButtonRelease-1>', self.left_click_action)
         btn.bind('<Button-3>', self.right_click_action)  # right-click
         self.cell_button_obj = btn
 
@@ -64,10 +65,10 @@ class Cell:
 
     def left_click_action(self, event):
         """
-        When button is left-clicked on a cell button, it will open the cell and
-        show how many mines are surrounding the cell. If cell is a mine, you
-        lose. If you successfully click all the cells that aren't mines, you
-        win!
+        When button is left-clicked on a cell button, opens the cell and show
+        how many mines are surrounding the cell. If cell is a mine, button
+        turns red and you lose.
+        If you successfully click all the cells that aren't mines, you win!
         event needed as an argument for the function
         """
 
@@ -77,7 +78,7 @@ class Cell:
             self.show_cell()
             self.show_surrounding_cells()
 
-            # If mines count is equal to the cells left count, player wins
+            # If all cells that aren't mines are opened, player wins
             if Cell.cell_count == 0:
                 ctypes.windll.user32.MessageBoxW(0, 'YOU WIN', 'WIN', 0)
 
@@ -160,7 +161,6 @@ class Cell:
                 text=f"{self.surrounding_cells_mine_number}",
                 fg=f"{Cell.text_color[self.surrounding_cells_mine_number]}",
                 relief="flat",
-
             )
             self.update_count()
             self.is_opened = True
@@ -184,16 +184,13 @@ class Cell:
     def show_mine():
         """
         When a mine button is shown, the background of the cell turns red.
-        Hit a mine, game over. Show all mine locations
+        Hit a mine, game over. Shows all mine locations
         """
         for cell in Cell.all_cells:
             cell.cell_button_obj.unbind('<ButtonRelease-1>')
             cell.cell_button_obj.unbind('<Button-3>')
             if cell.is_mine:
                 cell.cell_button_obj.configure(bg="red")
-        # ctypes.windll.user32.MessageBoxW(0, 'MINE! BOOM!'
-        #                                     '\nClick the reset button',
-        #                                  'GAME OVER', 0)
 
     @staticmethod
     def randomize_mines(mine_num):
