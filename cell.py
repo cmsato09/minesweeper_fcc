@@ -7,7 +7,7 @@ import sys
 
 class Cell:
     all_cells = []
-    cell_count = settings.CELL_COUNT - settings.MINE_NUMBER # could use len(all_cells)?
+    cell_count = settings.GRID_SIZE_X * settings.GRID_SIZE_Y
     cell_count_label_object = None
     mine_count = settings.MINE_NUMBER
     text_color = {  # used in show_cell function when displaying text color
@@ -57,7 +57,7 @@ class Cell:
             bg='black',
             fg='white',
             text=f"Cells Left: {Cell.cell_count}\n"
-                 f"Flags Left: {settings.MINE_NUMBER}",
+                 f"Flags Left: {Cell.mine_count}",
             font=('', 10),
         )
         Cell.cell_count_label_object = label
@@ -68,8 +68,9 @@ class Cell:
         show how many mines are surrounding the cell. If cell is a mine, you
         lose. If you successfully click all the cells that aren't mines, you
         win!
+        event needed as an argument for the function
         """
-        # tkinter convention to have one more parameter to assign something to an event
+
         if self.is_mine:
             self.show_mine()
         else:
@@ -86,6 +87,7 @@ class Cell:
         The background of the button switches to yellow and flag count is
         decreased by 1. When button is already flagged, the button reverts to
         the default color and flag count is increased by 1.
+        event needed as an argument for function
         """
 
         if not self.is_mine_candidate:
@@ -189,16 +191,17 @@ class Cell:
             cell.cell_button_obj.unbind('<Button-3>')
             if cell.is_mine:
                 cell.cell_button_obj.configure(bg="red")
-        # ctypes.windll.user32.MessageBoxW(0, 'MINE, BOOM', 'GAME OVER', 0)
-        # sys.exit()  # exits game, TODO restart the game when you lose
+        # ctypes.windll.user32.MessageBoxW(0, 'MINE! BOOM!'
+        #                                     '\nClick the reset button',
+        #                                  'GAME OVER', 0)
 
     @staticmethod
-    def randomize_mines():
+    def randomize_mines(mine_num):
         """
         Randomly selects cells to become mines in all_cells list.
         Number of mines depends on grid size and mine number settings.
         """
-        selected_cells = random.sample(Cell.all_cells, settings.MINE_NUMBER)
+        selected_cells = random.sample(Cell.all_cells, mine_num)
         for picked_cell in selected_cells:
             picked_cell.is_mine = True
 
